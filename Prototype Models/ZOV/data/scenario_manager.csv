@@ -1,0 +1,4 @@
+Scenario,Description,Market Penetration,Roadway System Input,Vehicle Dynamics,CAF Lookup,ZOV CAF Lookup,Output Table
+Alternative A,Baseline Scenario,data\scenario_a\market_penetration.csv,data\scenario_a\RoadwaySystem_Input.csv,data\lookup_tables\vehicle_dynamics_table.csv,data\lookup_tables\lookup_table.csv,data\lookup_tables\lookup_table_zov.csv,data\output\alternative_a.csv
+Alternative B,Scenario with Higher AV Market Penetration Rate,data\scenario_b\market_penetration.csv,data\scenario_b\RoadwaySystem_Input.csv,data\lookup_tables\vehicle_dynamics_table.csv,data\lookup_tables\lookup_table.csv,data\lookup_tables\lookup_table_zov.csv,data\output\alternative_b.csv
+Alternative C,Scenario with Changes in ZOV Percentages,data\scenario_c\market_penetration.csv,data\scenario_c\RoadwaySystem_Input.csv,data\lookup_tables\vehicle_dynamics_table.csv,data\lookup_tables\lookup_table.csv,data\lookup_tables\lookup_table_zov.csv,data\output\alternative_c.csv

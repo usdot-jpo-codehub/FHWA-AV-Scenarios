@@ -1,0 +1,13 @@
+Facility Type,Base Capacity,Connectivity Percentage,AV Allowed,Passenger Car Equivalent,Percent ZOV
+Freeway,2200,100,100,0.8,10
+Merge,1800,100,100,0.9,10
+Diverge,1900,100,100,0.9,10
+Freeway,2200,100,100,0.8,0
+Freeway,2200,100,100,0.8,20
+Freeway,2200,100,100,0.8,30
+Freeway,2200,100,100,0.8,40
+Freeway,2200,100,100,0.8,50
+Freeway,2200,100,100,0.8,60
+Freeway,2200,100,100,0.8,70
+Freeway,2200,100,100,0.8,80
+Freeway,2200,100,100,0.8,90

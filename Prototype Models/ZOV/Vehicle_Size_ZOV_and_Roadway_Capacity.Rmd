@@ -1,0 +1,148 @@
+---
+title: "Roadway Capacity Adjustment for AV Market Penetration, Vehicle Dynamics, Vehicle Size, and Zero Occupancy Vehicles "
+runtime: shiny
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+suppressMessages(suppressWarnings(library(dplyr)))
+suppressMessages(suppressWarnings(library(knitr)))
+```
+
+## Introduction
+
+The purpose of this document is to provide an example of how to use the vehicle size and roadway capacity adjustment function for multiple scenarios.  The purpose of this function is to provide a framework that allows the user to adjust capacity of roadway facilities based on the market penetration of autonomous vehicles (AVS), the percentage of the roadway facility that provides connectivity between vehicles, the percentage of trips made by zero occupancy vehicles (ZOVs), and the size of vehicles relative to a passenger car equivalent (PCE).  This function uses two different user input tables for each scenario and three look-up tables to determine the appropriate capacity adjustment factor (CAF) to apply to each facility type.
+
+- AV market penetration rates by level of automation
+- Roadway system inputs that provide details on the base capacity, connectivity, percent of trip made by ZOVs, and PCE for each facility type
+- Vehicle dynamics look-up table that varies by facility type and percent of zov trips
+- Capacity adjustment factor look-up table for each combination of facility type, vehicle dynamics, AV market penetration, and percent of ZOV trips
+
+
+The scenario manager look-up table documents the input files and look-up tables used in each scenario.The vehicle dynamics look-up table contains details related to dynamics of how AVs behave on a specific facility type with a specified percentage of zero occupancy trips.  These behaviors are focused on the platoon capabilities of connected and autonomous vehicles (CAVs) and include the intervehicle gap (space between each AVs), maximum platoon size, and CAV interplatoon gap (space between each platoon). The capacity adjustment factor look-up table contains appropriate CAFs to use of each combination of facility type, vehicle dynamics, CAV percentage, percent vehicle occupancy vehicles, and base roadway capacity.  The use of these two look-up tables will allow users to add in additional CAFs as more empirical or micro-simulation studies are conducted to better understand the impacts of AV on roadway capacity. 
+
+The roadway system input files contains the details on the roadway segments being analyzed. These details include:
+- The type of roadway segment being analyzed (merge, diverge, weave, etc.)
+- The baseline capacity in passenger car equivalents per hour per lane
+- The percent of the segment that has AV connectivity
+- The overall adjustment to PCEs of all the vehicles traveling on the roadway segments
+- The overall percentage of trips made by ZOVs
+ 
+# Example 1 - Evaluating a Single Scenario
+The following code snippet provides an example of how to use the roadway capacity adjustment function for a single scenario.  The details for the inputs files associated with the scenario can be found in the roadway capacity specification list. The table below provides a summary of the results from the example. 
+
+```{r, run_example, message=FALSE, warning=FALSE}
+
+source("scripts/CalculateRoadwayCapacity.R")
+
+# List to specifiy the input files
+CalculateRoadwayCapacitySpecification  <- list(
+  AVMarketPenetration = list(file="data/scenario_a/market_penetration.csv"
+    , description="A file that summarizes the percentage of AV market penetration by level of automation (values should total to 100)"
+    , column_names = c("av_level", "market_penetration")
+    , data_types = c("character", "numeric")
+    , column_description =c("Level of Automation", "Market Penetration Percentage"))
+  , RoadwaySystem = list(file="data/scenario_a/RoadwaySystem_Input.csv"
+    , description="A file that provides details on the specific roadway segment "
+    , column_names = c("facility", "base_capacity", "connectivity_percentage", "percent_av_allowed", "pce", "percent_zov")
+    , data_types = c("character", "numeric", "numeric", "numeric", "numeric", "numeric")
+    , column_description =c("Facility Type", "Base Capacity", "Connectivity Percentage", "AV Allowed", "Passenger Car Equivalent", "Percent ZOV"))
+  , VehicleDynamics = list(file="data/lookup_tables/vehicle_dynamics_table.csv"
+    , description="A look table the summarizes the vehicle dynamics used in the scenario"
+    , column_names = c("facility", "percent_zov", "intervehicle_gap", "max_platoon_size", "cav_interplatoon_gap")
+    , data_types = c("character", "numeric","numeric", "numeric", "numeric")
+    , column_description =c("Facility Type", "Percent ZOV","Intervehicle Gap","Max Platoon","CAV Interplatoon Gap"))
+, CAFLookup = list(file="data/lookup_tables/lookup_table.csv"
+    , description="The main lookup table used by the tool to determine which CAF to apply to the base capacity value."
+    , column_names = c("cav_percentage", "facility", "intervehicle_gap", "max_platoon_size", "cav_interplatoon_gap", "base_capacity", "caf")
+    , data_types = c("character", "numeric", "numeric", "numeric")
+    , column_description =c("CAV Percentage", "Facility Type", "Intervehicle Gap", "Max Platoon Size", "CAV Interplatoon Gap", "Base Capacity", "CAF"))
+  , ZOVCAFLookup = list(file="data/lookup_tables/lookup_table_zov.csv"
+    , description="The main lookup table used by the tool to determine which CAF to apply to the base capacity value."
+    , column_names = c("cav_percentage", "percent_zov","facility", "intervehicle_gap", "max_platoon_size", "cav_interplatoon_gap", "base_capacity", "caf")
+    , data_types = c("character", "numeric", "numeric", "numeric", "numeric")
+    , column_description =c("CAV Percentage", "ZOV Percent", "Facility Type", "Intervehicle Gap", "Max Platoon Size", "CAV Interplatoon Gap", "Base Capacity", "CAF"))
+  , output = list(file="data/output/scenario_a.csv"
+    , description = "Scenario Specific Output File That will Be Generated with the Tool is Run"
+    , column_names = c("facility","base_capacity","cav_percentage", "caf", "adjusted_capacity", "pce", "pce_adj_capacity", "percent_zov", "zov_caf", "zov_adjusted_capacity", "zov_pce_adj_capacity")
+    , data_types = c("character", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric")
+    , column_description = c("Facility Type","Base Capacity","CAV Percentage", "CAF", "AV Market Penetration Adjusted Capacity", "PCE", "AV Market Penetration and PCE Adjusted Capacity", "ZOV Percentage", "ZOV CAF", "ZOV and AV Market Penetration Adjusted Capacity", "ZOV, PCE, and AV Market Penetration Adjusted Capacity"))
+  )
+
+
+# Run the function to calculate the adjusted Roadway Capacity
+df <- CalculateRoadwayCapacityZOVPCE(CalculateRoadwayCapacitySpecification)
+
+# Print the Results of the Function in a Formated Table
+kable(df, format.args = list(big.mark=",")
+      , digits = c(0, 0, 0, 2, 0, 2, 0, 0, 2, 0, 0)
+      , align = c('l', 'c', 'c','c', 'c', 'c', 'c', 'c', 'c', 'c', 'c'))
+
+```
+
+## Example 2 - Capacity Adjustments Using the Scenario Manager
+The following code snippet provides an example of how to use the roadway capacity adjustment function for multiple scenarios.  The relative paths to the required input files are all contained in the scenario manager look-up table.  The information in this table is then used to update a list that is passed to the function. The table below provides a summary of the results from the example. 
+
+```{r, dropdown_test, message=FALSE, warning=FALSE}
+source("scripts/CalculateRoadwayCapacity.R")
+
+# Read in Scenario Table
+scenario_df <- read.csv("data/scenario_manager.csv", stringsAsFactors = FALSE)
+scenario_list <- scenario_df[, 1]
+
+# Template List that will be updated based on the selected scenario
+# List to specifiy the input files
+# List to specifiy the input files
+CalculateRoadwayCapacitySpecification  <- list(
+  AVMarketPenetration = list(file="data/scenario_c/market_penetration.csv"
+    , description="A file that summarizes the percentage of AV market penetration by level of automation (values should total to 100)"
+    , column_names = c("av_level", "market_penetration")
+    , data_types = c("character", "numeric")
+    , column_description =c("Level of Automation", "Market Penetration Percentage"))
+  , RoadwaySystem = list(file="data/scenario_c/RoadwaySystem_Input.csv"
+    , description="A file that provides details on the specific roadway segment "
+    , column_names = c("facility", "base_capacity", "connectivity_percentage", "percent_av_allowed", "pce", "percent_zov")
+    , data_types = c("character", "numeric", "numeric", "numeric", "numeric", "numeric")
+    , column_description =c("Facility Type", "Base Capacity", "Connectivity Percentage", "AV Allowed", "Passenger Car Equivalent", "Percent ZOV"))
+  , VehicleDynamics = list(file="data/lookup_tables/vehicle_dynamics_table.csv"
+    , description="A look table the summarizes the vehicle dynamics used in the scenario"
+    , column_names = c("facility", "percent_zov", "intervehicle_gap", "max_platoon_size", "cav_interplatoon_gap")
+    , data_types = c("character", "numeric","numeric", "numeric", "numeric")
+    , column_description =c("Facility Type", "Percent ZOV","Intervehicle Gap","Max Platoon","CAV Interplatoon Gap"))
+, CAFLookup = list(file="data/lookup_tables/lookup_table.csv"
+    , description="The main lookup table used by the tool to determine which CAF to apply to the base capacity value."
+    , column_names = c("cav_percentage", "facility", "intervehicle_gap", "max_platoon_size", "cav_interplatoon_gap", "base_capacity", "caf")
+    , data_types = c("character", "numeric", "numeric", "numeric")
+    , column_description =c("CAV Percentage", "Facility Type", "Intervehicle Gap", "Max Platoon Size", "CAV Interplatoon Gap", "Base Capacity", "CAF"))
+  , ZOVCAFLookup = list(file="data/lookup_tables/lookup_table_zov.csv"
+    , description="The main lookup table used by the tool to determine which CAF to apply to the base capacity value."
+    , column_names = c("cav_percentage", "percent_zov","facility", "intervehicle_gap", "max_platoon_size", "cav_interplatoon_gap", "base_capacity", "caf")
+    , data_types = c("character", "numeric", "numeric", "numeric", "numeric")
+    , column_description =c("CAV Percentage", "ZOV Percent", "Facility Type", "Intervehicle Gap", "Max Platoon Size", "CAV Interplatoon Gap", "Base Capacity", "CAF"))
+  , output = list(file="data/output/scenario_c.csv"
+    , description = "Scenario Specific Output File That will Be Generated with the Tool is Run"
+    , column_names = c("facility","base_capacity","cav_percentage", "caf", "adjusted_capacity", "pce", "pce_adj_capacity", "percent_zov", "zov_caf", "zov_adjusted_capacity", "zov_pce_adj_capacity")
+    , data_types = c("character", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric")
+    , column_description = c("Facility Type","Base Capacity","CAV Percentage", "CAF", "AV Market Penetration Adjusted Capacity", "PCE", "AV Market Penetration and PCE Adjusted Capacity", "ZOV Percentage", "ZOV CAF", "ZOV and AV Market Penetration Adjusted Capacity", "ZOV, PCE, and AV Market Penetration Adjusted Capacity"))
+  )
+
+
+# Create Shiny Input Pannels 
+shiny::inputPanel(
+  shiny::selectInput("selected_scenario", label = "Select a Scenario:",
+              choices = scenario_list, selected = scenario_list[1])
+)
+
+shiny::renderTable({
+  print(input$selected_scenario)
+  L <- PrepareInputList(input$selected_scenario, scenario_df, CalculateRoadwayCapacitySpecification)
+  results <- CalculateRoadwayCapacityZOVPCE(L)
+  results
+}, digits = 2, align='c', format.args=list(big.mark=","))
+
+```
+
+
+
+

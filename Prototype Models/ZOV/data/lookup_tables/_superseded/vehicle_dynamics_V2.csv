@@ -1,0 +1,16 @@
+Facility Type,Percent Zov,Intervehicle Gap,Max Platoon,CAV Interplatoon Gap
+Freeway,10,0.71,10,2
+Merge,10,0.71,10,2
+Weave,10,0.71,10,2
+Freeway,10,0.71,10,2
+Freeway,10,0.71,10,2
+Freeway,10,0.71,10,2
+Freeway,10,0.5,20,1
+Freeway,10,0.61,10,1
+Freeway,10,0.44,30,3
+Freeway,10,0.26,20,3
+Freeway,10,0.91,10,2
+Freeway,10,0.81,20,2
+Freeway,10,0.71,10,1
+Freeway,10,0.71,20,2
+Diverge,10,0.71,20,2
