@@ -3,8 +3,7 @@
 This project contains the R code and markdown documents created during the development of the FHWA AV Scenario Planning Tool.
 The R code that contains the functions created for this project can be found inside of the "scripts" folders.  All of the relevent datasets for the tool can be found in the "data" folders.
 
-The final report associated with this project may be found at:
-XXXXXXXXX.rosap.gov/XXXXXXXXX
+The final report associated with this project has not yet been published, this README will be updated with the associated link once the report is available.
 
 Please read this report for additional context on the project and for further details on how to use various aspects of these models. The data in this project were adapted from a variety of sources; specific citations are given in the linked report.
 
