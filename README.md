@@ -1,5 +1,7 @@
 # DC17-0021 FHWA AV Scenario Planning
 
+[Incorporating Automated Vehicles into Scenario Planning Models](https://rosap.ntl.bts.gov/view/dot/66970)
+
 This project contains the R code and markdown documents created during the development of the FHWA AV Scenario Planning Tool.
 The R code that contains the functions created for this project can be found inside of the "scripts" folders.  All of the relevent datasets for the tool can be found in the "data" folders.
 
